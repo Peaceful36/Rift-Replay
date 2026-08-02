@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+    <canvas id="goldChart"></canvas>
+    <script>
+        const ctx = document.getElementById("goldChart");
+                const chart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: [],       // x-axis values (e.g. game time)
+                        datasets: [{
+                            label: "Win Probability (%)",
+                            data: []      // y-axis values
+                        }]
+                    }
+                });
+
+        const goldDifferenceOverTime = {};
+        const ws = new WebSocket("ws://localhost:8080");
+        ws.onopen = () => {
+            // console.log("Connected to WebSocket server");
+            ws.send(JSON.stringify({action: "speed", speed: 20.0}));
+        };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            // console.log(data);
+            const participantGold = {};
+            if (data.type === "frame") {
+                const frames = data.data.participantFrames;
+                const ids = Object.keys(frames);
+                const goldDisplay = document.getElementById("goldDisplay");
+                var team1Gold = data.data.team1_gold;
+                var team2Gold = data.data.team2_gold;
+                var goldDifference = data.data.gold_diff;
+
+                goldDisplay.textContent = `Team 1 Gold: ${team1Gold}, Team 2 Gold: ${team2Gold}`;
+                console.log(`Team 1 Gold: ${team1Gold}, Team 2 Gold: ${team2Gold}`);
+
+                const currentTime = data.data.game_time;
+                goldDifferenceOverTime[currentTime] = goldDifference;
+
+                chart.data.labels.push(currentTime);
+                chart.data.datasets[0].data.push(data.data.win_probability * 100); // Convert to percentage
+                chart.update();
+                console.log(data.data.gold_diff, data.data.win_probability);
+            } 
+            // else {
+            //     const eventsDiv = document.getElementById("events");
+            //     const eventElement = document.createElement("div");
+            //     eventElement.textContent = JSON.stringify(data);
+            //     eventsDiv.appendChild(eventElement);
+            //     if (eventsDiv.childElementCount > 50) {
+            //         eventsDiv.removeChild(eventsDiv.firstChild);
+            //     }
+            // }
+        };
+        
+    </script>
+    <div id="events">
+    <div id="goldDisplay"></div>
+    </div>
+    
+</body>
+</html> 
