@@ -1,10 +1,4 @@
 """Replay scheduler: emits pre-loaded events on a virtual clock.
-
-This is the asyncio equivalent of the Go version's goroutine-based
-Scheduler. The core idea is identical: the gap between consecutive
-events is scaled by a speed multiplier, so 2x speed halves every wait,
-pause halts the clock, and seek jumps the read position without
-needing to reconstruct timing state.
 """
 
 import asyncio
